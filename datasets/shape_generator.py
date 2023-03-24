@@ -5,7 +5,7 @@ import os
 
 from itertools import product
 
-from shapes import Circle, Square, Triangle
+from shapes import Shape, Circle, Square, Triangle
 from constants import *
 
 
@@ -37,7 +37,7 @@ def generate(n_shapes, n_examples):
                 center = (
                     random.randint(X_MIN, X_MAX),
                     random.randint(Y_MIN, Y_MAX))
-                candidate = constructors[shape_type](color, size, center)
+                candidate = Shape.get_constructor(shape_type)(color, size, center)
                 
                 for shape in shapes:
                     if candidate.intersect(shape):

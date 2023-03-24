@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from shapely.geometry import Polygon, Point
-from datasets.constants import *
+from constants import *
 
 class Shape:
     """
@@ -55,6 +55,19 @@ class Shape:
             "size": self.size, 
             "center": self.center, 
         }
+
+    @classmethod
+    def get_constructor(cls, shape_name):
+        if shape_name.lower() == "circle":
+            return Circle
+        if shape_name.lower() == "square":
+            return Square
+        if shape_name.lower() == "triangle":
+            return Triangle
+        return ValueError(f"A constructor does not exist for {shape_name}")
+
+    def __repr__(self):
+        return f"{self.size.lower()} {self.color.lower()} {self.name.lower()}"
 
 
 class Circle(Shape):
