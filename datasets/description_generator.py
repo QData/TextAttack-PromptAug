@@ -127,71 +127,60 @@ class DescriptionGenerator:
 
     
     def _transitive(self):
+        result = {}
+        for method in ["left", "right", "above", "below"]:
+            result[method] = self._transitive_helper(method)
+        return result
+
+
+    def _transitive_helper(self, method="left"):
         """
-        Simple transitivity prompt for 3 objects
+        Describe every object in order of method. For example, for method='left',
+        describe all the objects, starting with the rightmost one and moving left.
 
-        1 2 3
-
-        1 -> 2 -> 3
-        3 -> 2 -> 1
-        2 -> 1, 2 -> 3
+        For n objects, we get n - 1 relations.
 
         """
-        horizontal = True
-        if len(self.shapes) < 3:
-            return ""
-        if len(self.shapes) != 3:
-            raise NotImplementedError
+
+        if method not in {"left", "right", "above", "below"}:
+            raise ValueError(f"{method} is not a valid method")
+
+        def compare(shape1, shape2):
+            # We want the rightmost object so there are objects to the left
+            if method == "left":
+                return shape1.right > shape2.right
+            # We want the leftmost object so there are objects to the right
+            if method == "right":
+                return shape1.left < shape2.left
+            # We want the bottommost object so there are objects above
+            if method == "above":
+                return shape1.bottom < shape2.bottom
+            # method == "below"
+            return shape1.top > shape2.top
 
 
-        # TODO: Fix me, there could be two objects to the left (or right) with the same x coordinate
-        description = "There are 3 shapes in a canvas. "
-        if horizontal:
-            i = random.randint(0, len(self.shapes) - 1)
-            start = self.shapes[i]
+        # Find the first object
+        start = 0
+        for i in range(1, len(self.shapes)):
+            if compare(self.shapes[i], self.shapes[start]):
+                start = i
 
-            description += f"A {start} is in the canvas. "
-            # The ordering can be A B C
-            # Right shape, corresponds to C 
-            if len(self.relationships[i]["Left"]) == 2:
-                first = self.shapes[min(self.relationships[i]["Left"], key=lambda i: self.shapes[i].center[0])]
-                second = self.shapes[max(self.relationships[i]["Left"], key=lambda i: self.shapes[i].center[0])]
-                direction1 = "To the left"
-                direction2 = "To the left"
+        # Check there are at least 2 objects in the direction
+        if len(self.relationships[start][method.title()]) < 2:
+            return None
 
-                left = first
-                right = start
-
-            # Left shape, corresponds to A
-            elif len(self.relationships[i]["Right"]) == 2:
-                first = self.shapes[min(self.relationships[i]["Right"], key=lambda i: self.shapes[i].center[0])]
-                second = self.shapes[max(self.relationships[i]["Right"], key=lambda i: self.shapes[i].center[0])]
-                direction1 = "To the right"
-                direction2 = "To the right"
-
-                left = start
-                right = second
-
-            # Middle shape, corresponds to B
-            elif len(self.relationships[i]["Left"]) == 1 and len(self.relationships[i]["Right"]) == 1:
-                first = self.shapes[self.relationships[i]["Left"][0]]
-                second = self.shapes[self.relationships[i]["Right"][0]]
-                direction1 = "To the left"
-                direction2 = "To the right"
-
-                left = first
-                right = second
+        # Iterate over the objects in order and add them to the description
+        description = f"There is a {self.shapes[start]} in the canvas. "
+        prev = start
+        for i in self.relationships[start][method.title()]:
+            if method in {"left", "right"}:
+                description += f"To the {method} of {self.shapes[prev]} is a {self.shapes[i]}. "
             else:
-                return ""
-
-            description += f"{direction1} of the {start} is a {first}. "
-            description += f"{direction2} of the {start} is a {second}. "
-        else:
-            description = ""
-
+                description += f"{method.title()} the {self.shapes[prev]} is a {self.shapes[i]}. "
+            prev = i
 
         return description
-
+                
 
 if __name__ == "__main__":
     DATA_ROOT = "data/descriptions"
