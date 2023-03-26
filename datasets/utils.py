@@ -34,12 +34,13 @@ def get_relationships(shapes):
                     relations["Above"].append(j)
                 if shape2.bottom < shape1.bottom:
                     relations["Below"].append(j)
-        relationships.append(relations)
 
-    # Sort all the relationships
-    relations["Left"].sort(key=lambda i: shapes[i].center[0], reverse=True)
-    relations["Right"].sort(key=lambda i: shapes[i].center[0])
-    relations["Above"].sort(key=lambda i: shapes[i].center[1])
-    relations["Below"].sort(key=lambda i: shapes[i].center[1], reverse=True)
+        # Sort all the relationships
+        relations["Left"].sort(key=lambda i: shapes[i].left, reverse=True)
+        relations["Right"].sort(key=lambda i: shapes[i].right)
+        relations["Above"].sort(key=lambda i: shapes[i].top)
+        relations["Below"].sort(key=lambda i: shapes[i].bottom, reverse=True)
+
+        relationships.append(relations)
 
     return relationships
