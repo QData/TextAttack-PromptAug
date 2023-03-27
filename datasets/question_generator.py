@@ -40,118 +40,86 @@ class QuestionGenerator:
         Generates two transitvity questions, one for horizontal directions and
         one for vertical directions
 
-        This depends on the prompt
-
         """
+        results = {
+            "horizontal": None, 
+            "vertical": None
+        }
 
         # We need at least 3 shapes for transitivity
         if len(self.shapes) < 3:
-            return []
+            return results
 
-        tries = 0
-        start = random.randint(0, len(self.shapes) - 1)
-        found_left = len(self.relationships[start]["Left"]) > 1
-        found_right = len(self.relationships[start]["Right"]) > 1
-        # This condition may never be satisfied, so limit the number of tries
-        while not (found_left or found_right) and tries < (2 * len(self.shapes)):
-            start = random.randint(0, len(self.shapes) - 1)
-            found_left = len(self.relationships[start]["Left"]) > 1
-            found_right = len(self.relationships[start]["Right"]) > 1
 
-            tries += 1
+        def valid(candidate, direction):
+            if direction == "horizontal":
+                return (
+                    len(self.relationships[candidate]["Left"]) > 1,
+                    len(self.relationships[candidate]["Right"]) > 1
+                )
+            # direction == vertical
+            return (
+                len(self.relationships[candidate]["Above"]) > 1,
+                len(self.relationships[candidate]["Below"]) > 1
+            )
 
-        if tries == 2 * len(self.shapes):
-            return []
 
-        # There are at least two shapes on the left, so this is the right object
-        if found_left:
-            right = self.shapes[start]
-            # Pick a random object in the relationship list so that at least 1 object is in between
-            left = self.shapes[self.relationships[start]["Left"][random.randint(1, len(self.relationships[start]["Left"]) - 1)]]
-        else:
-            left = self.shapes[start]
-            right = self.shapes[self.relationships[start]["Right"][random.randint(1, len(self.relationships[start]["Right"]) - 1)]]
+        for direction in results.keys():
+            tries = 0
+            candidate = random.randint(0, len(self.shapes) - 1)
+            found1, found2 = valid(candidate, direction)
+            # found_left = len(self.relationships[candidate]["Left"]) > 1
+            # found_right = len(self.relationships[candidate]["Right"]) > 1
+            # This condition may never be satisfied, so limit the number of tries
+            while not (found1 or found2) and tries < (2 * len(self.shapes)):
+                candidate = random.randint(0, len(self.shapes) - 1)
+                found1, found2 = valid(candidate, direction)
 
-        if random.random() < 0.5:
-            question = f"Where is the {left} relative to the {right}?"
-            answer = "Left"
-        else:
-            question = f"Where is the {right} relative to the {left}?"
-            answer = "Right"
+                tries += 1
 
-        return [(question, answer)]
-    
-    
-    def generate_transitivity_promopt(self, horizontal=True):
-        """
-        Simple transitivity prompt for 3 objects
+            if tries == 2 * len(self.shapes):
+                continue
 
-        """
-        if len(self.shapes) != 3:
-            return []
+            if direction == "horizontal":
+                # There are at least two shapes on the left, so this is the right object
+                if found1:
+                    right = self.shapes[candidate]
+                    # Pick a random object in the relationship list so that at least 1 object is in between
+                    left = self.shapes[self.relationships[candidate]["Left"][random.randint(1, len(self.relationships[candidate]["Left"]) - 1)]]
+                else:
+                    left = self.shapes[candidate]
+                    right = self.shapes[self.relationships[candidate]["Right"][random.randint(1, len(self.relationships[candidate]["Right"]) - 1)]]
 
-        description = "There are 3 shapes in a canvas. "
-        if horizontal:
-            i = random.randint(0, len(self.shapes) - 1)
-            start = self.shapes[i]
+                if random.random() < 0.5:
+                    question = f"Where is the {left} relative to the {right}?"
+                    answer = "Left"
+                else:
+                    question = f"Where is the {right} relative to the {left}?"
+                    answer = "Right"
 
-            description += f"A {start} is in the canvas. "
-            # The ordering can be A B C
-            # Right shape, corresponds to C 
-            if len(self.relationships[i]["Left"]) == 2:
-                first = self.shapes[min(self.relationships[i]["Left"], key=lambda i: self.shapes[i].center[0])]
-                second = self.shapes[max(self.relationships[i]["Left"], key=lambda i: self.shapes[i].center[0])]
-                direction1 = "To the left"
-                direction2 = "To the left"
-
-                left = first
-                right = start
-
-            # Left shape, corresponds to A
-            elif len(self.relationships[i]["Right"]) == 2:
-                first = self.shapes[min(self.relationships[i]["Right"], key=lambda i: self.shapes[i].center[0])]
-                second = self.shapes[max(self.relationships[i]["Right"], key=lambda i: self.shapes[i].center[0])]
-                direction1 = "To the right"
-                direction2 = "To the right"
-
-                left = start
-                right = second
-
-            # Middle shape, corresponds to B
-            elif len(self.relationships[i]["Left"]) == 1 and len(self.relationships[i]["Right"]) == 1:
-                first = self.shapes[self.relationships[i]["Left"][0]]
-                second = self.shapes[self.relationships[i]["Right"][0]]
-                direction1 = "To the left"
-                direction2 = "To the right"
-
-                left = first
-                right = second
+            # Corresponds to above
             else:
-                direction1 = "ERROR"
-                direction2 = "ERROR"
-                first = "ERROR"
-                second = "ERROR"
-                left = "ERROR"
-                right = "ERROR"
-                
+                # There are at least two shapes above this one, so it is the bottom
+                if found1:
+                    bottom = self.shapes[candidate]
+                    top = self.shapes[self.relationships[candidate]["Above"][random.randint(1, len(self.relationships[candidate]["Above"]) - 1)]]
+                else:
+                    top = self.shapes[candidate]
+                    bottom = self.shapes[self.relationships[candidate]["Below"][random.randint(1, len(self.relationships[candidate]["Below"]) - 1)]]
 
-            description += f"{direction1} of the {start} is a {first}. "
-            description += f"{direction2} of the {start} is a {second}. "
-
-            description += "\nQuestion: "
-            if random.random() < 0.5:
-                description += f"Where is the {left} relative to the {right}? "
-                answer = "Left"
-            else:
-                description += f"Where is the {right} relative to the {left}? "
-                answer = "Right"
-
-        else:
-            pass
+                if random.random() < 0.5:
+                    question = f"Where is the {top} relative to the {bottom}?"
+                    answer = "Above"
+                else:
+                    question = f"Where is the {bottom} relative to the {top}?"
+                    answer = "Below"
 
 
-        return description, answer
-        
+            results[direction] = (question , answer)
+
+        return results
+
+    
     def generate_existence_questions(self):
         """
         Generate every existence question for the shapes.
