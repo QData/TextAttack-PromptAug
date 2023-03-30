@@ -11,14 +11,11 @@ class DescriptionGenerator:
     def __init__(self, shapes):
         self.shapes = shapes
         self.relationships = get_relationships(shapes)
-        self.filename = None
 
 
     @classmethod
     def from_file(cls, filename):
-        obj = cls(json_to_shapes(filename))
-        obj.filename = filename.split("/")[-1]
-        return obj
+        return cls(json_to_shapes(filename))
 
 
     def generate_descriptions(self, method="short"):
@@ -38,9 +35,8 @@ class DescriptionGenerator:
                 results[name] = function()
             except NotImplementedError:
                 pass
-                
-        with open(f"{DATA_ROOT}/{self.filename}", "w") as file:
-            json.dump(results, file, indent=4)
+
+        return results
 
 
     def get_direction(self, origin_shape_ix, other_shape_ix):
@@ -197,6 +193,8 @@ if __name__ == "__main__":
 
     for i in range(0, n_examples):
         gen = DescriptionGenerator.from_file(f"data/canvases/canvas_{n_shapes}_{i}.json")
-        gen.generate_descriptions()
+        descriptions = gen.generate_descriptions()
 
+        with open(f"{DATA_ROOT}/canvas_{n_shapes}_{i}.json", "w") as file:
+            json.dump(descriptions, file, indent=4)
 

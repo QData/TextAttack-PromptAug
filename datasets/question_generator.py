@@ -42,8 +42,8 @@ class QuestionGenerator:
 
         """
         results = {
-            "horizontal": None, 
-            "vertical": None
+            "horizontal": [], 
+            "vertical": []
         }
 
         # We need at least 3 shapes for transitivity
@@ -68,16 +68,15 @@ class QuestionGenerator:
             tries = 0
             candidate = random.randint(0, len(self.shapes) - 1)
             found1, found2 = valid(candidate, direction)
-            # found_left = len(self.relationships[candidate]["Left"]) > 1
-            # found_right = len(self.relationships[candidate]["Right"]) > 1
+
             # This condition may never be satisfied, so limit the number of tries
-            while not (found1 or found2) and tries < (2 * len(self.shapes)):
+            while not (found1 or found2) and tries < (4 * len(self.shapes)):
                 candidate = random.randint(0, len(self.shapes) - 1)
                 found1, found2 = valid(candidate, direction)
 
                 tries += 1
 
-            if tries == 2 * len(self.shapes):
+            if tries == 4 * len(self.shapes):
                 continue
 
             if direction == "horizontal":
@@ -90,12 +89,13 @@ class QuestionGenerator:
                     left = self.shapes[candidate]
                     right = self.shapes[self.relationships[candidate]["Right"][random.randint(1, len(self.relationships[candidate]["Right"]) - 1)]]
 
-                if random.random() < 0.5:
-                    question = f"Where is the {left} relative to the {right}?"
-                    answer = "Left"
-                else:
-                    question = f"Where is the {right} relative to the {left}?"
-                    answer = "Right"
+                question = f"Where is the {left} relative to the {right}?"
+                answer = "Left"
+                results[direction].append((question, answer))
+
+                question = f"Where is the {right} relative to the {left}?"
+                answer = "Right"
+                results[direction].append((question, answer))
 
             # Corresponds to above
             else:
@@ -107,15 +107,13 @@ class QuestionGenerator:
                     top = self.shapes[candidate]
                     bottom = self.shapes[self.relationships[candidate]["Below"][random.randint(1, len(self.relationships[candidate]["Below"]) - 1)]]
 
-                if random.random() < 0.5:
-                    question = f"Where is the {top} relative to the {bottom}?"
-                    answer = "Above"
-                else:
-                    question = f"Where is the {bottom} relative to the {top}?"
-                    answer = "Below"
+                question = f"Where is the {top} relative to the {bottom}?"
+                answer = "Above"
+                results[direction].append((question, answer))
 
-
-            results[direction] = (question , answer)
+                question = f"Where is the {bottom} relative to the {top}?"
+                answer = "Below"
+                results[direction].append((question, answer))
 
         return results
 
