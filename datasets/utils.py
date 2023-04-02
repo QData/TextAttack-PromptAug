@@ -4,7 +4,7 @@ from shapes import Shape
 
 def json_to_shapes(filepath):
     with open(filepath, "r") as file:
-        shapes = json.load(file)
+        shapes = json.load(file)["canvas"]
         
     result = []
     for shape in shapes:
