@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from shapely.geometry import Polygon, Point
-from constants import *
+from datasets.constants import *
 
 class Shape:
     """
@@ -68,6 +68,14 @@ class Shape:
 
     def __repr__(self):
         return f"{self.size.lower()} {self.color.lower()} {self.name.lower()}"
+
+
+    def __eq__(self, other):
+        return self.color == other.color and self.size == other.size and self.name == other.name
+
+
+    def __hash__(self):
+        return hash((self.name, self.color, self.size))
 
 
 class Circle(Shape):
