@@ -5,8 +5,8 @@ import os
 
 from itertools import product
 
-from shapes import Shape, Circle, Square, Triangle
-from constants import *
+from datasets.shapes import Shape, Circle, Square, Triangle
+from datasets.constants import *
 
 
 def generate_shapes(n_shapes):

@@ -2,8 +2,8 @@ import os
 import sys
 import matplotlib.pyplot as plt
 
-from utils import json_to_shapes
-from constants import X_MIN, X_MAX, Y_MIN, Y_MAX
+from datasets.utils import json_to_shapes
+from datasets.constants import X_MIN, X_MAX, Y_MIN, Y_MAX
 
 
 def plot_canvas(filepath):
