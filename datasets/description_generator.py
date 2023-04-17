@@ -3,7 +3,7 @@ import os
 import random
 import json
 
-from utils import json_to_shapes, get_relationships
+from datasets.utils import json_to_shapes, get_relationships
 
 
 class DescriptionGenerator:
@@ -18,15 +18,11 @@ class DescriptionGenerator:
         return cls(json_to_shapes(filename))
 
 
-    def generate_descriptions(self, method="short"):
-        if method not in {"full", "short", "transitive"}:
-            raise ValueError(f"The method, {method}, provided is not supported.")
-
+    def generate_descriptions(self):
         name_to_function = {
             "full": self._full, 
             "partial": self._partial,
-            "short": self._short, 
-            "transitive": self._transitive
+            "coordinates": self._coordinates,
         }
 
         results = {}
@@ -75,7 +71,7 @@ class DescriptionGenerator:
                 x_dir, y_dir = self.get_direction(i, j)
 
                 if x_dir and y_dir:
-                    direction = f"to the {y_dir.lower()} {x_dir.lower()}"
+                    direction = f"to the {y_dir.lower()} {x_dir.lower()} of"
                 elif x_dir:
                     direction = f"{x_dir.lower()} of"
                 else:
@@ -95,21 +91,22 @@ class DescriptionGenerator:
             description = f"There is {len(self.shapes)} shape in a canvas. "
         else:
             description = f"There are {len(self.shapes)} shapes in a canvas. "
-        
-        for i, shape in enumerate(self.shapes):
-            description += f"There is a {shape} in the canvas. "
 
-            for j, other in enumerate(self.shapes[i + 1:]):
-                x_dir, y_dir = self.get_direction(i, j + i + 1)
+        for i in range(0, len(self.shapes)):
+            shape1 = self.shapes[i]
+            description += f"There is a {shape1} in the canvas. "
+            for j in range(i + 1, len(self.shapes)):
+                x_dir, y_dir = self.get_direction(i, j)
 
                 if x_dir and y_dir:
-                    direction = f"to the {y_dir.lower()} {x_dir.lower()}"
+                    direction = f"to the {y_dir.lower()} {x_dir.lower()} of"
                 elif x_dir:
                     direction = f"{x_dir.lower()} of"
                 else:
                     direction = y_dir.lower()
                     
-                description += f"A {self.shapes[j]} is {direction} this {shape}. "
+                description += f"A {self.shapes[j]} is {direction} this {shape1}. "
+
         return description
 
 
@@ -121,59 +118,19 @@ class DescriptionGenerator:
         """
         raise NotImplementedError
 
-    
-    def _transitive(self):
-        result = {}
-        for method in ["left", "right", "above", "below"]:
-            result[method] = self._transitive_helper(method)
-        return result
 
-
-    def _transitive_helper(self, method="left"):
+    def _coordinates(self):
         """
-        Describe every object in order of method. For example, for method='left',
-        describe all the objects, starting with the rightmost one and moving left.
-
-        For n objects, we get n - 1 relations.
+        Describe the coordinate position of every object
 
         """
+        if len(self.shapes) == 1:
+            description = f"There is {len(self.shapes)} shape in a canvas. "
+        else:
+            description = f"There are {len(self.shapes)} shapes in a canvas. "
 
-        if method not in {"left", "right", "above", "below"}:
-            raise ValueError(f"{method} is not a valid method")
-
-        def compare(shape1, shape2):
-            # We want the rightmost object so there are objects to the left
-            if method == "left":
-                return shape1.right > shape2.right
-            # We want the leftmost object so there are objects to the right
-            if method == "right":
-                return shape1.left < shape2.left
-            # We want the bottommost object so there are objects above
-            if method == "above":
-                return shape1.bottom < shape2.bottom
-            # method == "below"
-            return shape1.top > shape2.top
-
-
-        # Find the first object
-        start = 0
-        for i in range(1, len(self.shapes)):
-            if compare(self.shapes[i], self.shapes[start]):
-                start = i
-
-        # Check there are at least 2 objects in the direction
-        if len(self.relationships[start][method.title()]) < 2:
-            return None
-
-        # Iterate over the objects in order and add them to the description
-        description = f"There is a {self.shapes[start]} in the canvas. "
-        prev = start
-        for i in self.relationships[start][method.title()]:
-            if method in {"left", "right"}:
-                description += f"To the {method} of {self.shapes[prev]} is a {self.shapes[i]}. "
-            else:
-                description += f"{method.title()} the {self.shapes[prev]} is a {self.shapes[i]}. "
-            prev = i
+        for shape in self.shapes:
+            description += f"There is a {shape} at {(shape.center[0], shape.center[1])}. "
 
         return description
                 
@@ -192,7 +149,7 @@ if __name__ == "__main__":
         os.makedirs(DATA_ROOT)
 
     for i in range(0, n_examples):
-        gen = DescriptionGenerator.from_file(f"data/canvases/canvas_{n_shapes}_{i}.json")
+        gen = DescriptionGenerator.from_file(f"data/canvas_{n_shapes}_{i}.json")
         descriptions = gen.generate_descriptions()
 
         with open(f"{DATA_ROOT}/canvas_{n_shapes}_{i}.json", "w") as file:
