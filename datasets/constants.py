@@ -10,6 +10,5 @@ SHAPES = {"Square", "Circle", "Triangle"}
 COLORS = {"Red", "Blue", "Yellow", "Green"}
 SIZES = {"Small", "Large"}
 
-SHAPES = {"Square", "Circle", "Triangle"}
-COLORS = {"Red", "Blue", "Yellow", "Green"}
-SIZES = {"Small", "Large"}
+DESCRIPTION_TYPES = {"full", "partial", "coordinates", "transitivity"}
+MODEL_NAMES = {"chat-gpt", "gpt-j", "flan-t5", "flan-ul2", "dolly"}
