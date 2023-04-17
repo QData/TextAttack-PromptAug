@@ -3,17 +3,17 @@ import os
 import random
 
 from torch.utils.data import Dataset
+from datasets.constants import DESCRIPTION_TYPES
+from datasets.tasks.registered_tasks import tasks
 
 
 class ShapeDataset(Dataset):
-    def __init__(self, n_shapes, description_type, question_type, data_dir="data"):
+    def __init__(self, n_shapes, description_type, question_type, is_few_shot, data_dir="data2"):
 
-        valid_description_types = {"full", "partial", "short", "transitive"}
-        if description_type not in valid_description_types:
+        if description_type not in DESCRIPTION_TYPES:
             raise ValueError(f"Description type must be one of {valid_description_types}")
 
-        valid_question_types = {"existence", "transitivity"}
-        if question_type not in valid_question_types:
+        if question_type not in [task.name for task in tasks]:
             raise ValueError(f"Question type must be one of {valid_question_types}")
 
         if n_shapes < 2 and question_type == "transitivity":
@@ -21,6 +21,7 @@ class ShapeDataset(Dataset):
 
         self.description_type = description_type
         self.question_type = question_type
+        self.is_few_shot = is_few_shot
 
         def is_data_file(filename):
             root, ext = os.path.splitext(filename)
@@ -48,6 +49,19 @@ class ShapeDataset(Dataset):
             data = json.load(file)
 
         description = data["descriptions"][self.description_type]
-        question, answer = data["questions"][self.question_type]
+        qa = data["questions"][self.question_type]
+
+        # The ExistenceTrackingTask adds to the description
+        if self.question_type == "existence_tracking":
+            description += data["descriptions"]["existence_tracking"]
+
+        # If few-shot, add the example question and answers to the description
+        if self.is_few_shot:
+            for question, answer in qa[1:]:
+                description += f"\nQuestion: {question}\nAnswer: {answer}"
+
+        # The first question-answer pair is always the question to ask
+        question, answer = qa[0]
+        
         return description, question, answer
 

@@ -1,109 +1,65 @@
-import json
 import sys
 import os
-import random
-import numpy as np
+import json
 
-from shape_generator import generate_shapes
-from description_generator import DescriptionGenerator
-from question_generator import QuestionGenerator
+from utils import json_to_shapes
+
+from datasets.description_generator import DescriptionGenerator
+from datasets.shape_generator import generate_shapes
+from datasets.tasks.registered_tasks import tasks
 
 
 if __name__ == "__main__":
-    if __name__ == "__main__":
-        SEED = 37
-        DATA_ROOT = "data"
+    if len(sys.argv) != 3:
+        print("Usage: python data_generator.py <number of shapes in canvas> <number of example canvases>")
+        exit()
 
-        random.seed(SEED)
-        if len(sys.argv) != 3:
-            print("Usage: python data_generator.py <number of shapes in canvas> <number of example canvases>")
-            exit()
+    DATA_ROOT = "data"
 
-        n_shapes, n_examples = map(int, sys.argv[1:])
-        print(f"Generating {n_examples} examples with {n_shapes} shape(s).")
+    n_shapes, n_examples = map(int, sys.argv[1:])
+    print(f"Generating {n_examples} examples with {n_shapes} shape(s).")
 
     if not os.path.isdir(DATA_ROOT):
         os.makedirs(DATA_ROOT)
 
-    # Transitive answer counts: Left, Right, Above, Below
-    counts = [0, 0, 0, 0]
+
     for i in range(0, n_examples):
-        shapes = generate_shapes(n_shapes)
-
-        description_gen = DescriptionGenerator(shapes)
-        question_gen = QuestionGenerator(shapes)
-
-        # Generate descriptions
-        descriptions = description_gen.generate_descriptions()
-
-        # Generate questions
-        questions = question_gen.generate_questions()
-
-        # Choose one of each question type, make a balanced dataset
-        # Existence
-        selected_answer = "Yes" if i < (n_examples // 2) else "No"
-        questions["existence"] = random.choice(
-            [(question, answer) for question, answer in questions["existence"] if answer == selected_answer]
-        )
-
-        # Transitvity
-        if n_shapes < 3:
-            del questions["transitivity"]
-            del descriptions["transitive"]
+        filepath = f"{DATA_ROOT}/canvas_{n_shapes}_{i}.json"
+        # If data already exists, we just want to update it
+        if os.path.isfile(filepath):
+            shapes = json_to_shapes(filepath)
+        # Otherwise, generate a new canvas
         else:
-            # Round robin the answer, try to make a balanced dataset
-            min_ix = np.argmin(counts)
+            shapes = generate_shapes(n_shapes)
 
-            # Edge cases where this canvas doesn't have horizontal or vertical 
-            # transitivity but we tried to select that one
-            if min_ix < 2 and (descriptions["transitive"]["left"] is None and descriptions["transitive"]["right"] is None) or len(questions["transitivity"]["horizontal"]) == 0:
-                min_ix = np.argmin(counts[2:]) + 2
-            if min_ix >= 2 and descriptions["transitive"]["above"] is None and descriptions["transitive"]["below"] is None or len(questions["transitivity"]["vertical"]) == 0:
-                min_ix = np.argmin(counts[:2])
+        data = {
+            "canvas": [shape.to_json() for shape in shapes],
+            "descriptions": DescriptionGenerator(shapes).generate_descriptions(), 
+            "questions": {}
+        }
+        for task in tasks:
+            selected_answer = task.select_expected_answer(i, n_examples)
+            task_qa = task.generate_questions(shapes, selected_answer)
+            if len(task_qa) != 0:
+                data["questions"][task.name] = task_qa
 
-            # Horizontal Direction
-            if min_ix < 2:
-                try:
-                    questions["transitivity"] = questions["transitivity"]["horizontal"][min_ix]
-                except:
-                    print([shape.to_json() for shape in shapes])
-                    print()
-                    print(descriptions)
-                    print()
-                    print(questions)
-                    break
-                if descriptions["transitive"]["left"] is None:
-                    descriptions["transitive"] = descriptions["transitive"]["right"]
-                elif descriptions["transitive"]["right"] is None or random.random() < 0.5:
-                    descriptions["transitive"] = descriptions["transitive"]["left"]
-                else:
-                    descriptions["transitive"] = descriptions["transitive"]["right"]
-            # Vertical Direction
-            else:
-                questions["transitivity"] = questions["transitivity"]["vertical"][min_ix - 2]
-                if descriptions["transitive"]["above"] is None:
-                    descriptions["transitive"] = descriptions["transitive"]["below"]
-                elif descriptions["transitive"]["below"] is None or random.random() < 0.5:
-                    descriptions["transitive"] = descriptions["transitive"]["above"]
-                else:
-                    descriptions["transitive"] = descriptions["transitive"]["below"]
+                # Some tasks generate their own descriptions or additional
+                # information to add to the description
+                if hasattr(task, "description"):
+                    data["descriptions"][task.name] = task.description
 
-            counts[min_ix] += 1
 
-        
-        # Done processing
-        # Write out the results
-        with open(f"data/canvas_{n_shapes}_{i}.json", "w") as file:
-            data = {
-                "canvas": [shape.to_json() for shape in shapes],
-                "descriptions": descriptions, 
-                "questions": questions
-            }
+        if os.path.isfile(filepath):
+            with open(filepath, "r") as file:
+                old = json.load(file)
+
+            # Add all the keys in old to data, same keys are overwritten by old values
+            # First, update the questions sub-dictionary in old with the new questions
+            old["questions"] = data["questions"] | old["questions"]
+            old["descriptions"] = data["descriptions"] | old["descriptions"]
+            # Then update all the main keys
+            data = data | old
+
+        # Write out the new data
+        with open(filepath, "w") as file:
             json.dump(data, file, indent=4)
-
-
-    print("Done")
-    print()
-    print(f"Existence Answer Counts (Y, N): {n_examples // 2}, {n_examples - (n_examples // 2)}")
-    print(f"Transitivity Answer Counts (L, R, A, B): {counts}")
-
