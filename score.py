@@ -8,10 +8,14 @@ from datasets.tasks.registered_tasks import tasks
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-m", "--model", choices=MODEL_NAMES, required=True)
-    parser.add_argument("-q", "--question", choices=[task.name for task in tasks], required=True)
-    parser.add_argument("-s", "--num-shapes", type=int, required=True)
-    parser.add_argument("-f", "--few-shot", action="store_true")
+    parser.add_argument("-m", "--model", choices=MODEL_NAMES, required=True, 
+        help="The name of the model to evaluate")
+    parser.add_argument("-q", "--question", choices=[task.name for task in tasks], required=True, 
+        help="The task to evaluate") 
+    parser.add_argument("-s", "--num-shapes", type=int, required=True, 
+        help="The number of shapes in the canvas")
+    parser.add_argument("-f", "--few-shot", action="store_true", 
+        help="Whether the generated results are few-shot")
     args = parser.parse_args()
 
     subfolder = args.model.upper()
