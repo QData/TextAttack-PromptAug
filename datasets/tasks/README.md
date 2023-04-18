@@ -14,6 +14,6 @@ To add a new task `NewTask`, create a file `new_task.py` and define the `NewTask
 
 Once you have defined your new task, register it in `registered_tasks.py`. Depending on your task, there are potentially two additional steps:
 
-1. If your task and its description are closely coupled, the task can create the description in cojuntion with the question-answer pairs. In this case, have your task set `self.description` during each call to `generate_questions`. See `TransitivityTask` for an example. 
+1. If your task and its description are closely coupled, the task can create the description in conjunction with the question-answer pairs. In this case, have your task set `self.description` during each call to `generate_questions`. See `TransitivityTask` for an example. 
 
 2. Your task may add additional information to a description. In this case, you must have your task set `self.description` during each call to `generate_questions` AND you must modify `loader.py` to add this information to the description when the data is loaded. See `ExistenceTrackingTask` and `loader.py` for an example. 
