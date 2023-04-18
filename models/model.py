@@ -7,7 +7,9 @@ import requests
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 
-CACHE_DIR = "/p/qdatatext/ki4km/models/"
+CACHE_DIR = "/p/qdatatext/ki4km/models"
+LLAMA_WEIGHTS_DIR = f"{CACHE_DIR}/models--facebook--llama-7B"
+ALPACA_WEIGHTS_DIR = f"{CACHE_DIR}/models--stanford--alpaca--7B"
 
 class Model:
 
@@ -31,6 +33,14 @@ class Model:
             from transformers import AutoModelForCausalLM, AutoTokenizer
             tokenizer = AutoTokenizer.from_pretrained("databricks/dolly-v1-6b", cache_dir=CACHE_DIR)
             model = AutoModelForCausalLM.from_pretrained("databricks/dolly-v1-6b", device_map="auto", cache_dir=CACHE_DIR)
+        elif self.model_name == "llama":
+            from transformers import AutoTokenizer, LlamaForCausalLM
+            tokenizer = AutoTokenizer.from_pretrained(LLAMA_WEIGHTS_DIR)
+            model = LlamaForCausalLM.from_pretrained(LLAMA_WEIGHTS_DIR, device_map="auto")
+        elif self.model_name == "alpaca":
+            from transformers import AutoModelForCausalLM, AutoTokenizer
+            tokenizer = AutoTokenizer.from_pretrained(ALPACA_WEIGHTS_DIR)
+            model = AutoModelForCausalLM.from_pretrained(ALPACA_WEIGHTS_DIR, device_map="auto")
         else:
             tokenizer = None
             model = None
@@ -95,7 +105,7 @@ class Model:
             pad_token_id=self.tokenizer.eos_token_id,
         )
         answer = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
-        if self.model_name in {"gpt-j", "dolly"}:
+        if self.model_name in {"gpt-j", "dolly", "alpaca", "llama"}:
             answer = answer[len(input_string):]
         return answer
 
