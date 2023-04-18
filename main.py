@@ -12,12 +12,18 @@ from models.model import Model
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-m", "--model", choices=MODEL_NAMES, required=True)
-    parser.add_argument("-d", "--description", choices=DESCRIPTION_TYPES, required=True)
-    parser.add_argument("-q", "--question", choices=[task.name for task in tasks], required=True)
-    parser.add_argument("-s", "--num-shapes", default=1, type=int)
-    parser.add_argument("-n", "--num-examples", default=0, type=int)
-    parser.add_argument("-f", "--few-shot", action="store_true")
+    parser.add_argument("-m", "--model", choices=MODEL_NAMES, required=True, 
+        help="The name of the model to run")
+    parser.add_argument("-d", "--description", choices=DESCRIPTION_TYPES, required=True,
+        help="The name of the description type to provide to the model")
+    parser.add_argument("-q", "--question", choices=[task.name for task in tasks], required=True,
+        help="The name of the task to run the model on")
+    parser.add_argument("-s", "--num-shapes", default=1, type=int, 
+        help="The number of shapes in the canvas")
+    parser.add_argument("-n", "--num-examples", default=0, type=int, 
+        help="The number of canvases to run")
+    parser.add_argument("-f", "--few-shot", action="store_true", 
+        help="Inputs are few-shot if set")
     args = parser.parse_args()
 
     is_gpu = torch.cuda.is_available()
