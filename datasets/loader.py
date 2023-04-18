@@ -8,7 +8,7 @@ from datasets.tasks.registered_tasks import tasks
 
 
 class ShapeDataset(Dataset):
-    def __init__(self, n_shapes, description_type, question_type, is_few_shot, data_dir="data2"):
+    def __init__(self, n_shapes, description_type, question_type, is_few_shot, data_dir="data"):
 
         if description_type not in DESCRIPTION_TYPES:
             raise ValueError(f"Description type must be one of {valid_description_types}")
