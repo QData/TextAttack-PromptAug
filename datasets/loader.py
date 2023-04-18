@@ -39,6 +39,9 @@ class ShapeDataset(Dataset):
         self.data_files = [filename for filename in os.listdir(self.data_dir) if is_data_file(filename)]
         self.data_files.sort(key=lambda filename: int(filename.split("_")[2].split(".")[0]))
 
+        if len(self.data_files) == 0:
+            raise ValueError(f"There is no generated for {n_shapes} shapes. Please generate data first.")
+
 
     def __len__(self):
         return len(self.data_files)
