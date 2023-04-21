@@ -14,7 +14,7 @@ To add a new task `NewTask`, create a file `new_task.py` and define the `NewTask
 
 Once you have defined your new task, register it in `registered_tasks.py`. Depending on your task, there are potentially two additional steps:
 
-1. If your task and its description are closely coupled, the task can create the description in conjunction with the question-answer pairs. In this case, have your task set `self.description` during each call to `generate_questions`. See `TransitivityTask` for an example. 
+1. If your task and its description are closely coupled, the task can create the description in conjunction with the question-answer pairs. In this case, have your task set `self.description` during each call to `generate_questions`. Additionally, you must add the description name to `DESCRIPTION_TYPES` in `datasets/constants.py`. See `TransitivityTask` for an example. 
 
 2. Your task may add additional information to a description. In this case, you must have your task set `self.description` during each call to `generate_questions` AND you must modify `loader.py` to add this information to the description when the data is loaded. See `ExistenceTrackingTask` and `loader.py` for an example. 
 
@@ -53,4 +53,11 @@ This task presents the description of the canvas. Then shapes in the canvas are 
 > There are 3 shapes in a canvas. There is a small blue circle in the canvas. A small red triangle is to the above left of this small blue circle. A large green circle is to the above left of this small blue circle. There is a small red triangle in the canvas. A large green circle is to the above left of this small red triangle. There is a large green circle in the canvas. A large blue triangle is added to the canvas. The large green circle is removed from the canvas. A small green triangle is added to the canvas.  
 Question: Is there a large green circle in the canvas?  
 Expected answer is "No"
+
+
+#### Shuffle Tracking Task
+This tasks presents the description of the canvas by descibing the order of the shapes in a line. Then the position of shapes in the canvas ae swapped. The model is asked what shape is at a certain position. For example, 
+> There are 3 shapes in a canvas. From bottom to top, the shapes are a small blue triangle, a large blue square, and a large blue triangle. The large blue square and the large blue triangle swap positions. The small blue triangle and the large blue triangle swap positions. The large blue square and the small blue triangle swap positions.   
+Question: What shape is second from the top?   
+Expected answer is "Large Blue Square"
 
