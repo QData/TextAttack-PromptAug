@@ -130,7 +130,11 @@ class DescriptionGenerator:
             description = f"There are {len(self.shapes)} shapes in a canvas. "
 
         for shape in self.shapes:
-            description += f"There is a {shape} at {(shape.center[0], shape.center[1])}. "
+            description += f"There is a {shape} at {(shape.center[0], shape.center[1])} "
+            if shape.name == "Circle":
+                description += f"with radius {shape.radius}. "
+            else:
+                description += f"with side length {shape.length}. "
 
         return description
                 
