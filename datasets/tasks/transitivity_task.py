@@ -42,6 +42,9 @@ class TransitivityTask(Task):
         # Pick one shape as the origin shape
         relationships = get_relationships(shapes)
 
+        # TODO: This could loop indefinetly, but hasn;t been an issue yet...
+        # Consider a large shape at (0, 0), a small shape at (0, 5), and a small shape
+        # at (5, 0)
         while True:
             origin_shape_index = random.randint(0, len(shapes) - 1)
 
@@ -110,9 +113,11 @@ class TransitivityTask(Task):
                 found = True
                 if (shape1_index, shape2_index) in used or (shape2_index, shape1_index) in used:
                     found = False
-                elif direction_type == "horizontal" and shapes[shape1_index].center[0] == shapes[shape2_index].center[0]:
+                # Edge case: No horizontal relationship between two objects (e.g. same x coordinate)
+                elif direction_type == "horizontal" and shape1_index not in relationships[shape2_index]["Left"] and shape1_index not in relationships[shape2_index]["Right"]:
                     found = False
-                elif direction_type == "vertical" and shapes[shape1_index].center[1] == shapes[shape2_index].center[1]:
+                # Edge case: No vertical relationship between two objects (e.g. same y coordinate)
+                elif direction_type == "vertical" and shape1_index not in relationships[shape2_index]["Above"] and shape1_index not in relationships[shape2_index]["Below"]:
                     found = False
 
                 if attempts > 5 * len(shapes) ** 2:
