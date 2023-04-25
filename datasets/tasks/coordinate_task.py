@@ -19,29 +19,25 @@ class CoordinateTask(Task):
         qa = []
         relationships = get_relationships(shapes)
 
-        def get_relationship(i, j):
-            answer = ""
-            if shapes[j].center[1] < shapes[i].center[1]:
-                answer += "Below "
-            elif shapes[j].center[1] > shapes[i].center[1]:
-                answer += "Above "
-
-            if shapes[j].center[0] < shapes[i].center[0]:
-                answer += "Left"
-            elif shapes[j].center[0] > shapes[i].center[0]:
-                answer += "Right"
-
-            return answer
-
-
         for i in range(0, len(shapes) - 1):
             for j in range(i + 1, len(shapes)):
+                answer = ""
+                if j in relationships[i]["Above"]:
+                    answer += "Above "
+                elif j in relationships[i]["Below"]:
+                    answer += "Below "
+
+                if j in relationships[i]["Left"]:
+                    answer += "Left"
+                if j in relationships[i]["Right"]:
+                    answer += "Right"
+
                 qa.append((
                     f"Where is the {shapes[j]} relative to the {shapes[i]}?",
-                    get_relationship(i, j)
+                    answer
                 ))
-
-        n_pairs = len(shapes) * (len(shapes) - 1) // 2
+   
+        n_pairs = len(qa)
         return random.sample(qa, min(3, n_pairs))
 
 
