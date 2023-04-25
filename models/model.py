@@ -52,13 +52,16 @@ class Model:
         self.model = model
 
 
-    @retry(wait=wait_random_exponential(min=3, max=20), stop=stop_after_attempt(6))
+    @retry(wait=wait_random_exponential(min=20, max=60), stop=stop_after_attempt(6))
     def gpt_api_call(self, input_string):
+        time.sleep(5)
         completion = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=[
                 {"role": "user", "content": input_string}
-            ]
+            ],
+            top_p=0.9,
+            max_tokens=50
         )
         return completion.choices[0].message["content"]
 
