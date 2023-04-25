@@ -2,6 +2,7 @@ import json
 import random
 
 from datasets.tasks.task import Task
+from datasets.constants import SHAPES
 
 class ShuffleTrackingTask(Task):
 
@@ -117,3 +118,21 @@ class ShuffleTrackingTask(Task):
             ))
 
         return qa
+
+
+    def score(self, filepath):
+        with open(filepath, "r") as file:
+            result = json.load(file)
+        expected = str(result["expected"]).lower()
+        actual = str(result["actual"]).lower()
+        score = 0
+
+        # Score only the first shape mentioned
+        index = len(actual)
+        for shape in SHAPES:
+            new_index = actual.find(shape.lower()) 
+            if new_index != -1:
+                index = min(index, new_index + len(shape))
+        actual = actual[:index + 1]
+
+        return 1 if expected in actual else 0

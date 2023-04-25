@@ -19,7 +19,21 @@ class Task:
         with open(filepath, "r") as file:
             result = json.load(file)
 
-        return 1 if str(result["expected"]).lower() in str(result["actual"]).lower() else 0
+        actual = str(result["actual"]).lower()
+        expected = str(result["expected"]).lower()
+
+        # Models may generate multiple answers as part of
+        # generation, take the first one
+        for token in ["answer:", "a:"]:
+            if token in actual:
+                actual = actual.split(token)
+                if len(actual) > 1:
+                    actual = actual[1]
+                else:
+                    actual = actual[0]
+                break
+
+        return 1 if expected in actual else 0
 
     # Helpful utility methods
     def _generate_attributes(self):

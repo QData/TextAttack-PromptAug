@@ -136,25 +136,31 @@ class TransitivityTask(Task):
             result = json.load(file)
         expected = str(result["expected"]).lower()
         actual = str(result["actual"]).lower()
-
         score = 0
 
+        # Process only the first line that contains directional information
+        found = False
+        directions = ["left", "right", "above", "below"]
+        lines = actual.split("\n")
+        for line in lines:
+            for direction in directions:
+                if direction in line:
+                    actual = line
+                    found = True
+            if found:
+                break
+            
         # Filter out strings like "There is not enough information"
-        if "no" or "not" in answer:
+        if "no " in actual or "not " in actual:
             return score
 
         # Score is 1 for a correct answer
-        if expected in actual:
-            score += 1
-
-        # Lose 0.5 if made-up information exists
-        if expected in {"left", "right"}:
-            others = ["above", "below"]
-        else:
-            others = ["left", "right"]
-        for other in others:
-            if other in answer:
-                score -= 0.5
-                break
+        choices = ["left", "right", "above", "below"]
+        for word in actual.split():
+            if word in choices:
+                if word == expected:
+                    score += 1
+                else:
+                    score -= 0.5
 
         return max(0, score)
