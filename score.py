@@ -28,13 +28,17 @@ if __name__ == "__main__":
 
     total_score = 0
     total = 0
+
+    # File *should* be numbered sequentially, so just iterate until
+    # a file does not exist
+    total = 0
     while True:
         filepath = f"{results_folder}/canvas_{args.num_shapes}_{total}.json"
-        if not os.path.isfile(filepath):
+        try:
+            total_score += task.score(filepath)
+            total += 1
+        except FileNotFoundError:
             break
-
-        total_score += task.score(filepath)
-        total += 1
 
     print(f"Total Results: {total}")
     print(f"Avereage Score: {total_score / total:0.4f}")
