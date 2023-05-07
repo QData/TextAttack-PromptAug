@@ -10,7 +10,7 @@ import json
 import os
 
 # openai key
-openai.api_key = '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'
+openai.api_key = ''
 # The folder that stores the mazes infomation.
 maze_folder = "maze_json"
 
