@@ -15,6 +15,9 @@ def report_gen(form_number, report_folder):
     full = 0
     get = [0,0,0,0]
 
+    if not os.path.exists(report_folder):
+        os.makedirs(report_folder)
+
     #Iterate over the files in the maze folder
     for file_name in os.listdir(maze_folder):
         with open(os.path.join(maze_folder, file_name)) as f:
