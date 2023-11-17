@@ -36,3 +36,20 @@ The below will score Alpaca on the results generated above.
 python score.py --model alpaca --question existence --num-shapes 3
 ```
 
+### Refactoring into PromptAug
+This repository is currently a WIP. The goal is to extend this into a more generic package to augment prompts. 
+
+#### Workflow
+1. Select dataset or provide your own
+    e.g.
+
+2. Select prompts or provide your own
+    e.g.
+
+3. Select transformations on the prompts
+
+4. Select constraints on the transformed prompts
+
+5. With the given (x, y) = data, construct prompt + x. Apply transformation to prompt and filter by constraints, return transformed prompt + x. 
+
+6. Give the option to run models on transformed samples. 
