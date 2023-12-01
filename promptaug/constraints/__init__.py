@@ -1,1 +1,4 @@
-from .prompt_constraint import PromptConstraint
+from .prompt_constraint import (
+    PromptConstraint, 
+    UnmodifiableConstraint
+)

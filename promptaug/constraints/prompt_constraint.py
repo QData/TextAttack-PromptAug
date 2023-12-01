@@ -17,4 +17,10 @@ class PromptConstraint(PreTransformationConstraint):
     def check_compatibility(self, transformation):
         return True
 
+class UnmodifiableConstraint(PreTransformationConstraint):
 
+    def _get_modifiable_indices(self, current_text):
+        return set()
+
+    def check_compatibility(self, transformation):
+        return True
